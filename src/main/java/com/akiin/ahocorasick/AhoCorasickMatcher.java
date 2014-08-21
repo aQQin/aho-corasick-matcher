@@ -17,24 +17,6 @@ public class AhoCorasickMatcher {
     private boolean caseSensitive = false;
     private boolean removeOverlaps = true;
 
-    /**
-     * add keys from a property file
-     * @param dict : input property file
-     * @return : updated AhoCorasickMatcher object
-     */
-    public AhoCorasickMatcher setKeysFromProperties(Properties dict){
-        tree = new AhoCorasick();
-        Enumeration<?> enumeration = dict.propertyNames();
-        while (enumeration.hasMoreElements()) {
-            String key = (String) enumeration.nextElement();
-            byte[] bytes = (caseSensitive) ? key.getBytes() : key.toLowerCase().getBytes();
-            tree.add(bytes, dict.getProperty(key));
-        }
-        tree.prepare();
-        prepared = true;
-        return this;
-    }
-
     public AhoCorasickMatcher setKeysFromCollection(Collection<String> dict){
         tree = new AhoCorasick();
         for (String key: dict) {
@@ -100,6 +82,8 @@ public class AhoCorasickMatcher {
             int lastIndex = result.getLastIndex();
             String fullMatch ;
             int leftBound = Math.max(0, (lastIndex - (objects[0].toString().length() + 1)));
+            /*System.out.println(String.format("LI: [%d] LB:[%d] SS: %s OO: %s",
+                    lastIndex, leftBound, text.substring(leftBound, lastIndex), objects[0].toString()));*/
             if(lastIndex < text.length()){
                 fullMatch = text.substring(leftBound, lastIndex + 1);
             } else {
@@ -107,9 +91,12 @@ public class AhoCorasickMatcher {
             }
             if (leftBound == 0) fullMatch = " " + fullMatch;
             // add only if the match ended in a word boundry
-            Pattern compile = Pattern.compile("^(\\s||\\p{Punct})(.*)(\\s|\\p{Punct})$");
+            Pattern compile = Pattern.compile("^\\W.*\\W$");
             if (compile.matcher(fullMatch).matches() ){
-                    matches.put(lastIndex, objects[0].toString());
+//                System.out.println("SELE: [" + fullMatch + "]");
+                matches.put(lastIndex, objects[0].toString());
+            } else {
+//                System.out.println("DROP: [" + fullMatch + "]");
             }
         }
 

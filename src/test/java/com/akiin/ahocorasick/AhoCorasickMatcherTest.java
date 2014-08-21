@@ -3,43 +3,38 @@ package com.akiin.ahocorasick;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
 public class AhoCorasickMatcherTest extends TestCase {
 
-    @Test
-    public void testCaseSensitive() throws Exception {
-
-        Properties props = new Properties();
-        props.load(this.getClass().getClassLoader().getResourceAsStream("test.properties"));
-        AhoCorasickMatcher acm = new AhoCorasickMatcher().caseSensitive(true);
-        acm.setKeysFromProperties(props);
-        String text = "When the wise turtle selected the Dragon Warrior the master did not believe it" +
-                " however after the evil fled from the heavily guarded prison the master had no recourse but to " +
-                "believe in and train the dragon warrior";
-
-        System.out.println(acm.parseText(text));
-        assertEquals("matches should  be only lowercase", 5, acm.parseText(text).size() );
-        AhoCorasickMatcher acm1 = new AhoCorasickMatcher().caseSensitive(false);
-        acm1.setKeysFromProperties(props);
-        assertEquals("matches should  be only lowercase", 6, acm1.parseText(text).size() );
-
-    }
 
     @Test
     public void testParseText() throws Exception {
-        Properties props = new Properties();
-        props.load(this.getClass().getClassLoader().getResourceAsStream("test.properties"));
+
         AhoCorasickMatcher acm = new AhoCorasickMatcher();
-        acm.setKeysFromProperties(props);
-        String text = "When the wise turtle selected the dragon warrior the master did not believe it" +
+        HashMap<String,String> dict = new HashMap<String,String> (){{
+            put("dragon warrior", "Po");
+            put("Master", "Shifu");
+            put("wise", "Oogway");
+            put("evil", "Tai Lung");
+        }};
+        acm.setKeysFromCollection(dict.keySet());
+        String text = "When the wise turtle selected the Dragon Warrior the master did not believe it" +
                 " however after the evil fled from the heavily guarded prison the master had no recourse but to " +
-                "believe in and train the dragon warrior";
+                "believe in and train the Dragon Warrior";
 
-        System.out.println(acm.parseText(text));
+        List<String> matches = acm.parseText(text);
 
+        System.out.println(matches);
+        assertEquals("matches should  be only lowercase", 6, matches.size());
+        AhoCorasickMatcher acmCI = new AhoCorasickMatcher().caseSensitive(true);
+        acmCI.setKeysFromCollection(dict.keySet());
+        List<String> matchesCI = acmCI.parseText(text);
+        System.out.println(matchesCI);
+        assertEquals("matches should  be only lowercase", 2, matchesCI.size());
     }
 
     @Test
@@ -60,6 +55,28 @@ public class AhoCorasickMatcherTest extends TestCase {
     }
 
     @Test
+    public void testRemoveOverlaps1(){
+        HashSet<String> keys = new HashSet<String>(){{
+            add("ebook");
+            add("Tech");
+            add("game");
+            add("spot");
+
+        }};
+        AhoCorasickMatcher acm = new AhoCorasickMatcher().removeOverlaps(true);
+        acm.setKeysFromCollection(keys);
+        String url = "http://www.gamespot.com/articles/facebook-will-pay-you-to-find-oculus-rift-bugs/1100-6421849/";
+        String text = url.replaceFirst("http://", " ").replaceAll("-", " ");
+        List<String> matches = acm.parseText(text);
+        System.out.println(keys);
+        System.out.println(text);
+        System.out.println(matches);
+        assertEquals("No key should match since matches are partial words", 0, matches.size());
+
+
+    }
+
+    @Test
     public void testRemoveOverlaps(){
         HashSet<String> keys = new HashSet<String>(){{
             add("Tech");
@@ -72,7 +89,7 @@ public class AhoCorasickMatcherTest extends TestCase {
 
         AhoCorasickMatcher acm = new AhoCorasickMatcher().removeOverlaps(false);
         acm.setKeysFromCollection(keys);
-        String text = "The technology, behind aretweets is an enigma is an enigm";
+        String text = "The technology, behind retweets is an enigma is an enigm";
         List<String> overlappingMatches = acm.parseText(text);
         System.out.println("Overlapping: " + overlappingMatches);
         assertEquals("Overlapping matches should be counted", 4, overlappingMatches.size());
@@ -83,6 +100,7 @@ public class AhoCorasickMatcherTest extends TestCase {
         System.out.println("Non Overlapping: " + nonOverlappingMatches);
         assertEquals("overlapping matches should not be counted", 4, nonOverlappingMatches.size());
 
-
     }
+
+
 }
