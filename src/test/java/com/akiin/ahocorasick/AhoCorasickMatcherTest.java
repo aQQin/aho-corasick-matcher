@@ -63,25 +63,25 @@ public class AhoCorasickMatcherTest extends TestCase {
     public void testRemoveOverlaps(){
         HashSet<String> keys = new HashSet<String>(){{
             add("Tech");
-            add("Technology");
-            add("Tweet");
-            add("ReTweet");
+            add("The Technology");
+            add("Tweets");
+            add("ReTweets");
             add("an enigma");
             add("enigm");
         }};
 
         AhoCorasickMatcher acm = new AhoCorasickMatcher().removeOverlaps(false);
         acm.setKeysFromCollection(keys);
-        String text = "The technology behind retweets is an enigma";
+        String text = "The technology, behind aretweets is an enigma is an enigm";
         List<String> overlappingMatches = acm.parseText(text);
         System.out.println("Overlapping: " + overlappingMatches);
-        assertEquals("Overlapping matches should be counted", 5, overlappingMatches.size());
+        assertEquals("Overlapping matches should be counted", 4, overlappingMatches.size());
 
         AhoCorasickMatcher acmo = new AhoCorasickMatcher();
         acmo.setKeysFromCollection(keys);
         List<String> nonOverlappingMatches = acmo.parseText(text);
         System.out.println("Non Overlapping: " + nonOverlappingMatches);
-        assertEquals("overlapping matches should not be counted", 3, nonOverlappingMatches.size());
+        assertEquals("overlapping matches should not be counted", 4, nonOverlappingMatches.size());
 
 
     }

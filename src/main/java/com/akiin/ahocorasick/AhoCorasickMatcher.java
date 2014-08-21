@@ -6,6 +6,7 @@ import org.arabidopsis.ahocorasick.SearchResult;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by umar on 19/8/14.
@@ -76,8 +77,11 @@ public class AhoCorasickMatcher {
      * throws TreeException if parse was run on an unprepared tree;
      */
     public List<String> parseText(String text) throws TreeException{
-        //if (!prepared) throw new TreeException("Tree has not been built yet...");
+        if (!prepared) throw new TreeException("Tree has not been built yet...");
         List<String> termsThatHit = new ArrayList<String>();
+        if (text == null || text.isEmpty()){
+            return termsThatHit;
+        }
         TreeMap<Integer,String> matches = new TreeMap<Integer, String>();
         byte[] textBytes = (caseSensitive) ? text.getBytes() : text.toLowerCase().getBytes();
         for (Iterator iter = tree.search(textBytes); iter.hasNext(); ) {
@@ -93,9 +97,22 @@ public class AhoCorasickMatcher {
                     return length2.compareTo(length1);
                 }
             });
-            matches.put(result.getLastIndex(),objects[0].toString());
-
+            int lastIndex = result.getLastIndex();
+            String fullMatch ;
+            int leftBound = Math.max(0, (lastIndex - (objects[0].toString().length() + 1)));
+            if(lastIndex < text.length()){
+                fullMatch = text.substring(leftBound, lastIndex + 1);
+            } else {
+                fullMatch = text.substring(leftBound, lastIndex) + " ";
+            }
+            if (leftBound == 0) fullMatch = " " + fullMatch;
+            // add only if the match ended in a word boundry
+            Pattern compile = Pattern.compile("^(\\s||\\p{Punct})(.*)(\\s|\\p{Punct})$");
+            if (compile.matcher(fullMatch).matches() ){
+                    matches.put(lastIndex, objects[0].toString());
+            }
         }
+
         if (removeOverlaps){
             int lastIndex = -1;
             int matchLen=0;
